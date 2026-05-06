@@ -4,6 +4,9 @@ from airflow import DAG
 from datetime import timedelta, datetime
 import sys
 from pathlib import Path
+from scripts.gold_aggregate import gold_aggregate
+from scripts.silver_transform import silver_transform
+
 AIRFLOW_HOME = Path("/opt/airflow")
 
 if str(AIRFLOW_HOME) not in sys.path:
@@ -29,3 +32,15 @@ with DAG(
         task_id="bronze_ingest",
         python_callable=bronze_ingest
     )
+
+    silver = PythonOperator(
+        task_id="silver_transform",
+        python_callable=silver_transform,
+    )
+
+    gold = PythonOperator(
+        task_id="gold_aggregate",
+        python_callable=gold_aggregate,
+    )
+
+    bronze >> silver >> gold
